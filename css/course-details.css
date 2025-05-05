@@ -1,0 +1,74 @@
+:root {
+  --primary-color: #4a90e2;
+  --secondary-color: #2c3e50;
+  --bg-color: #f4f6f9;
+}
+
+body {
+  background-color: var(--bg-color);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-header {
+  background-color: white;
+  padding: 2rem;
+  border-bottom: 3px solid var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.back-button {
+  margin-right: 1rem;
+  color: var(--primary-color);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.back-button:hover {
+  transform: translateX(-3px);
+}
+
+.course-content {
+  flex: 1;
+  padding: 2rem;
+}
+
+.course-image-banner {
+  max-height: 250px;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+/* New styles for student management */
+.team-card {
+  transition: all 0.3s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+#joinCode {
+  letter-spacing: 2px;
+  font-family: monospace;
+}
+
+/* Student table styles */
+.table th {
+  background-color: #f8f9fa;
+  border-bottom-width: 2px;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(74, 144, 226, 0.05);
+}
+
+/* Team management styles */
+.card-header.bg-primary {
+  background-color: var(--primary-color) !important;
+}
