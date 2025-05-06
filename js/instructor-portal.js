@@ -54,7 +54,9 @@ function renderCourses() {
     courseBox.className = 'course-box';
     
     // Support both legacy string format and new object format
-    const courseName = typeof course === 'string' ? course : course.name;
+    const courseName = typeof course === 'string' 
+      ? course 
+      : (course.courseName || course.name || 'Unnamed Course');
     const courseImage = typeof course === 'object' && course.imageUrl ? course.imageUrl : null;
     
     // Make card clickable but prevent menu clicks from navigating

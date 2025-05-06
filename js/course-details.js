@@ -1,3 +1,8 @@
+let _courseData;
+let _COURSE_DATA_KEY;
+let _renderTeams;
+let _renderStudents;
+
 document.addEventListener('DOMContentLoaded', function() {
   // Load course information from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
@@ -5,9 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const courseId = urlParams.get('id');
   
   const COURSE_DATA_KEY = `course_${courseId}_data`;
+  _COURSE_DATA_KEY = COURSE_DATA_KEY; // Save reference
   
   // Initialize or retrieve course data from localStorage
   let courseData = JSON.parse(localStorage.getItem(COURSE_DATA_KEY) || '{"students":[], "teams":[], "reviews":[]}');
+  _courseData = courseData; // Save reference
   
   if (!courseData.reviews) {
     courseData.reviews = [];
@@ -120,12 +127,8 @@ document.addEventListener('DOMContentLoaded', function() {
           <td>${teamName}</td>
           <td>
             <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-primary edit-student" data-index="${index}">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn btn-outline-danger remove-student" data-index="${index}">
-                <i class="fas fa-trash"></i>
-              </button>
+              <button class="btn btn-outline-primary edit-student" data-index="${index}"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-outline-danger remove-student" data-index="${index}"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         `;
@@ -149,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
+  _renderStudents = renderStudents; // Save reference
   
   // ===== Team Management =====
   
@@ -177,42 +181,28 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">${team.name}</h5>
             <div class="dropdown">
-              <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                <i class="fas fa-ellipsis-v"></i>
-              </button>
+              <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item rename-team" href="#" data-index="${teamIndex}">
-                  <i class="fas fa-edit me-2"></i>Rename
-                </a></li>
-                <li><a class="dropdown-item delete-team" href="#" data-index="${teamIndex}">
-                  <i class="fas fa-trash me-2"></i>Delete
-                </a></li>
+                <li><a class="dropdown-item rename-team" href="#" data-index="${teamIndex}"><i class="fas fa-edit me-2"></i>Rename</a></li>
+                <li><a class="dropdown-item delete-team" href="#" data-index="${teamIndex}"><i class="fas fa-trash me-2"></i>Delete</a></li>
               </ul>
             </div>
           </div>
           <div class="card-body">
-            <h6 class="card-subtitle mb-3 text-muted">
-              <i class="fas fa-user-friends me-2"></i>${team.members.length} Members
-            </h6>
+            <h6 class="card-subtitle mb-3 text-muted"><i class="fas fa-user-friends me-2"></i>${team.members.length} Members</h6>
             <ul class="list-group">
               ${team.members.map(memberIndex => {
                 const student = courseData.students[memberIndex];
                 return `
                   <li class="list-group-item d-flex justify-content-between align-items-center">
                     ${student.name}
-                    <button class="btn btn-sm btn-outline-danger remove-from-team" 
-                      data-student-index="${memberIndex}">
-                      <i class="fas fa-user-minus"></i>
-                    </button>
+                    <button class="btn btn-sm btn-outline-danger remove-from-team" data-student-index="${memberIndex}"><i class="fas fa-user-minus"></i></button>
                   </li>
                 `;
               }).join('')}
             </ul>
             <div class="mt-3">
-              <button class="btn btn-sm btn-outline-primary w-100 add-to-team" 
-                onclick="addStudentToTeam('${team.name}')">
-                <i class="fas fa-user-plus me-2"></i>Add Student
-              </button>
+              <button class="btn btn-sm btn-outline-primary w-100 add-to-team" onclick="addStudentToTeam('${team.name}')"><i class="fas fa-user-plus me-2"></i>Add Student</button>
             </div>
           </div>
         </div>
@@ -245,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+  _renderTeams = renderTeams; // Save reference
   
   // ===== Add Student Functionality =====
   document.getElementById('saveStudentBtn').addEventListener('click', function() {
@@ -882,12 +873,8 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
             <div class="btn-group">
-              <button class="btn btn-outline-primary btn-sm view-results" onclick="viewReviewResults(${index})">
-                <i class="fas fa-chart-bar me-1"></i>View Results
-              </button>
-              <button class="btn btn-outline-danger btn-sm delete-review" onclick="deleteReview(${index})">
-                <i class="fas fa-trash me-1"></i>Delete
-              </button>
+              <button class="btn btn-outline-primary btn-sm view-results" onclick="viewReviewResults(${index})"><i class="fas fa-chart-bar me-1"></i>View Results</button>
+              <button class="btn btn-outline-danger btn-sm delete-review" onclick="deleteReview(${index})"><i class="fas fa-trash me-1"></i>Delete</button>
             </div>
           </div>
         </div>
@@ -1007,8 +994,64 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ===== Export functions for use in HTML onclick attributes =====
 window.addStudentToTeam = function(teamName) {
-  const event = new CustomEvent('addStudentToTeam', { detail: { teamName } });
-  document.dispatchEvent(event);
+  const teamIndex = _courseData.teams.findIndex(team => team.name === teamName);
+  if (teamIndex === -1) return;
+  
+  // Find unassigned students
+  const unassignedStudents = _courseData.students.filter((student, index) => {
+    return !_courseData.teams.some(team => team.members.includes(index));
+  });
+  
+  if (unassignedStudents.length === 0) {
+    return Swal.fire({
+      icon: 'info',
+      title: 'No Unassigned Students',
+      text: 'All students are already assigned to teams.'
+    });
+  }
+  
+  // Create dropdown of unassigned students
+  const options = unassignedStudents.map((student, i) => {
+    const studentIndex = _courseData.students.indexOf(student);
+    return `<option value="${studentIndex}">${student.name} (${student.id})</option>`;
+  }).join('');
+  
+  Swal.fire({
+    title: `Add Student to ${teamName}`,
+    html: `
+      <select id="studentSelect" class="form-select">
+        <option value="" disabled selected>Select a student</option>
+        ${options}
+      </select>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Add to Team',
+    preConfirm: () => {
+      const select = document.getElementById('studentSelect');
+      if (!select.value) {
+        Swal.showValidationMessage('Please select a student');
+        return false;
+      }
+      return select.value;
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const studentIndex = parseInt(result.value);
+      
+      _courseData.teams[teamIndex].members.push(studentIndex);
+      
+      localStorage.setItem(_COURSE_DATA_KEY, JSON.stringify(_courseData));
+      
+      _renderTeams();
+      _renderStudents();
+      
+      Swal.fire(
+        'Added!',
+        `${_courseData.students[studentIndex].name} has been added to ${teamName}.`,
+        'success'
+      );
+    }
+  });
 };
 
 window.viewReviewResults = function(index) {
@@ -1022,10 +1065,6 @@ window.deleteReview = function(index) {
 };
 
 // Connect global functions to the actual implementation
-document.addEventListener('addStudentToTeam', function(e) {
-  // Handled inside DOMContentLoaded
-});
-
 document.addEventListener('viewReviewResults', function(e) {
   // Handled inside DOMContentLoaded
 });
@@ -1033,6 +1072,3 @@ document.addEventListener('viewReviewResults', function(e) {
 document.addEventListener('deleteReview', function(e) {
   // Handled inside DOMContentLoaded
 });
-
-
-/*Commented by Copilot*/
